@@ -1,91 +1,96 @@
-# Claude Code on Bedrock: Kimi K3.1 and GLM 5.3
+# Claude Code on Bedrock
 
-Runs **Claude Code** on **Kimi K3.1 Pro** and **GLM 5.3** from Amazon Bedrock. It works in any terminal, including Cursor's integrated terminal.
+Use Claude Code with **Kimi K3.1 Pro** and **GLM 5.3** through Amazon Bedrock. Works in any terminal, including Cursor.
 
-Claude Code speaks the Anthropic Messages API. On Bedrock, Kimi K3.1 and GLM 5.3 only offer the OpenAI-compatible API (`https://bedrock-runtime.<region>.amazonaws.com/openai/v1`). So `CLAUDE_CODE_USE_BEDROCK=1` does not work for them; it only works for Anthropic's own models. This repo runs a small local [LiteLLM](https://github.com/BerriAI/litellm) proxy on `127.0.0.1` that translates between the two formats.
+## Requirements
 
-```
-claude-bedrock  ->  LiteLLM on 127.0.0.1:4000  ->  Bedrock /openai/v1  ->  Kimi K3.1 / GLM 5.3
-```
+- Claude Code (`claude` command)
+- macOS or Linux (use WSL on Windows)
+- A long-term Bedrock API key
+- Kimi K3.1 and GLM 5.3 enabled in your Bedrock account
 
-The Bedrock API key is never written to a config file. It lives in the macOS Keychain or the Linux secret store (secret-tool), and the proxy reads it from there.
+## Setup
 
-## Before you start
+1. Install `uv`:
 
-1. Enable model access in the Bedrock console. GLM 5.3 is limited to eligible accounts; ask your AWS account team if it is not listed.
-2. Create a **long-term** Bedrock API key: Bedrock console > API keys. Short-term keys expire after 12 hours.
-3. Install Claude Code, and `uv` (`brew install uv`). The installer uses uv to install LiteLLM.
+   ```bash
+   brew install uv
+   ```
 
-## Install (macOS and Linux)
+2. Create your configuration:
 
-```bash
-cp .env.example .env
-```
+   ```bash
+   cp .env.example .env
+   ```
 
-Open `.env` and fill it in:
+3. Open `.env` and enter your Bedrock API key and region:
 
-| Variable | Required | Meaning |
-|---|---|---|
-| `AWS_BEARER_TOKEN_BEDROCK` | yes | Bedrock API key. Moved to the secure store, then blanked in `.env`. |
-| `AWS_REGION` | yes | Region you send requests to, e.g. `us-east-1`. |
-| `BEDROCK_MODELS` | no | Inference profile IDs, comma-separated. First = default model, second = `/model opus`. Default: `global.moonshotai.kimi-k3.1,global.zai.glm-5.3` |
-| `BEDROCK_CONTEXT_WINDOW` | no | Context size Claude Code assumes. Default `1000000`. |
-| `BEDROCK_PROXY_PORT` | no | Local proxy port. Default `4000`. |
-| `LITELLM_SPEC` | no | Package spec for `uv tool install`. Pin a version you trust. |
+   ```dotenv
+   AWS_BEARER_TOKEN_BEDROCK=your_key
+   AWS_REGION=us-east-1
+   ```
 
-Empty values in `.env` are read from your shell environment instead. Then:
+   Keep the other defaults unless you need different models or ports.
 
-```bash
-./install.sh
-```
+4. Run the installer:
 
-The script runs these steps in order:
+   ```bash
+   ./install.sh
+   ```
 
-1. Reads the settings and rejects bare model IDs. Both models need a `global.` or `us.` profile.
-2. Sends a tiny request to each model, so a wrong key or missing model access shows up now. Models that fail are left out.
-3. Stores the key, reads it back to check, and blanks it in `.env`.
-4. Installs LiteLLM if needed and writes the proxy config.
-5. Creates the `claude-bedrock` command and adds a one-line block to `~/.zshrc` / `~/.bashrc`.
-6. Sends a one-word test prompt through Claude Code.
+   The installer checks model access, moves your key to the macOS Keychain or Linux secret store, installs the local LiteLLM proxy, and creates the `claude-bedrock` command.
 
-## Use
+5. Open a **new terminal** (in Cursor: **Terminal → New Terminal**) and start:
 
-Open a new terminal. In Cursor, use Terminal > New Terminal.
+   ```bash
+   claude-bedrock
+   ```
 
-| Command | What it does |
+## Commands
+
+| Command | Purpose |
 |---|---|
-| `claude-bedrock` | Claude Code on the first model. It starts the proxy if it is not running. |
-| `/model opus` (inside) | Switches to the second model. |
-| `bedrock-proxy-stop` | Stops the local proxy. |
-| `bedrock-cursor on` | Makes the Claude Code **chat panel** in Cursor use Bedrock and keeps the proxy running at login (macOS). `install.sh` runs this automatically when Cursor is installed (set `BEDROCK_CURSOR=off` in `.env` to skip). Then Cmd+Shift+P > Developer: Reload Window. |
-| `bedrock-cursor off` | Restores your normal Claude Code panel settings exactly (a backup is made on every switch). |
-| `bedrock-cursor status` | Shows which mode the panel uses. |
+| `claude-bedrock` | Start Claude Code on Bedrock. Starts the local proxy automatically. |
+| `/model opus` | Switch to the second model inside Claude Code. |
+| `bedrock-proxy-stop` | Stop the local proxy. |
+| `bedrock-cursor status` | Show whether Cursor's Claude Code panel uses Bedrock. |
+| `bedrock-cursor on` | Switch Cursor's panel to Bedrock. Reload Cursor afterward. |
+| `bedrock-cursor off` | Restore Cursor's normal Claude Code panel. |
 
-`bedrock-cursor` changes Cursor's user settings, so it affects every Claude Code panel in every Cursor window. To keep one window on Anthropic, create a Cursor profile for Bedrock and run `bedrock-cursor on --settings "<that profile's settings.json>"`.
+With Cursor installed, setup enables its Claude Code panel for Bedrock. After installation, run **Cmd+Shift+P → Developer: Reload Window**. To skip this during setup, set `BEDROCK_CURSOR=off` in `.env`.
 
-The `/model` picker lists only your Bedrock models, with readable names. The installer sets `modelPicker` in `~/.claude-bedrock/settings.json` and hides the built-in Anthropic rows, because the proxy can't serve them. This needs Claude Code v2.1.242 or later.
+Your normal `claude` command and `~/.claude` settings remain unchanged. Bedrock uses `~/.claude-bedrock` instead.
 
-Your normal `claude` command does not change. `claude-bedrock` uses a separate config dir (`~/.claude-bedrock`), so your normal Claude login, settings and history stay apart.
+## Models
 
-Uninstall: `./uninstall.sh`
+| Model | Default profile |
+|---|---|
+| Kimi K3.1 Pro | `global.moonshotai.kimi-k3.1` |
+| GLM 5.3 | `global.zai.glm-5.3` |
 
-## Model IDs
+Change `BEDROCK_MODELS` in `.env` to use different inference profiles. The first model is the default; the second is selected with `/model opus`. GLM 5.3 is available only to eligible AWS accounts.
 
-| Model | Global profile | Geo profiles |
-|---|---|---|
-| Kimi K3.1 Pro (Highspeed) | `global.moonshotai.kimi-k3.1` | `us.moonshotai.kimi-k3.1`, `in.moonshotai.kimi-k3.1` |
-| GLM 5.3 | `global.zai.glm-5.3` | `us.zai.glm-5.3` |
+## Troubleshooting
 
-Confirm them for your account with `aws bedrock list-inference-profiles --region <region>`. Both models count output tokens 10x against your quotas.
+If installation reports a failed check, see [MANUAL.md](MANUAL.md).
 
-## Notes
+- **401 or 403:** Check your API key, IAM permissions, and model access.
+- **400 or 404:** Check the model profile and AWS region.
+- **No answer after setup:** Check `~/.config/bedrock-agents/proxy.log`.
+- **Cursor panel unchanged:** Reload the window, then run `bedrock-cursor status`.
 
-- Claude Code is tuned for Claude models. Tool use and long tasks may be less reliable with Kimi or GLM.
-- The proxy only listens on `127.0.0.1` and needs a random local password (`~/.config/bedrock-agents/proxy-key`). Do not expose it on your network.
-- Keep tool-call approval on.
+## Uninstall
 
-Troubleshooting and manual setup: [MANUAL.md](MANUAL.md). Agent instructions: [AGENTS.md](AGENTS.md).
+```bash
+./uninstall.sh
+```
 
-On Windows, use WSL.
+## How it works
+
+```text
+claude-bedrock → LiteLLM on 127.0.0.1:4000 → Bedrock → Kimi K3.1 / GLM 5.3
+```
+
+The proxy listens only on your computer. Your Bedrock key stays in the secure store, not in a configuration file.
 
 License: MIT
