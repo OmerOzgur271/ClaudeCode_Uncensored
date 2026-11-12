@@ -57,7 +57,23 @@ Use Claude Code with **Kimi K3.1 Pro** and **GLM 5.3** through Amazon Bedrock. W
 | `bedrock-cursor on` | Switch Cursor's panel to Bedrock. Reload Cursor afterward. |
 | `bedrock-cursor off` | Restore Cursor's normal Claude Code panel. |
 
-With Cursor installed, setup enables its Claude Code panel for Bedrock. After installation, run **Cmd+Shift+P → Developer: Reload Window**. To skip this during setup, set `BEDROCK_CURSOR=off` in `.env`.
+### Cursor panel
+
+Enable Claude Code on Bedrock in Cursor:
+
+```bash
+bedrock-cursor on
+```
+
+Switch back to your normal Claude Code setup:
+
+```bash
+bedrock-cursor off
+```
+
+After either command, run **Cmd+Shift+P → Developer: Reload Window** in Cursor.
+
+With Cursor installed, setup enables its Claude Code panel for Bedrock automatically. To skip this during setup, set `BEDROCK_CURSOR=off` in `.env`.
 
 Your normal `claude` command and `~/.claude` settings remain unchanged. Bedrock uses `~/.claude-bedrock` instead.
 
