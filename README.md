@@ -1,4 +1,4 @@
-# Claude Code on Amazon Bedrock with Kimi K3.1 Pro and GLM 5.3
+# Claude Code Uncensored on Amazon Bedrock with Kimi K3.1 Pro and GLM 5.3
 
 **Run Claude Code with Kimi K3.1 Pro and GLM 5.3 through Amazon Bedrock.** One install script sets up a local LiteLLM proxy and adds a `claude-bedrock` command. You keep the Claude Code CLI and workflow, and Bedrock runs the models. It works in any terminal, in the Cursor terminal, and in Cursor's Claude Code panel.
 
